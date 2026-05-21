@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randy's Retirement Countdown! 🎉</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Floating Balloons */
+        .balloon {
+            position: fixed;
+            bottom: -100px;
+            width: 60px;
+            height: 80px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            animation: float-up 15s infinite ease-in;
+            z-index: 2;
+            opacity: 0.8;
+        }
+
+        .balloon::before {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 60px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-120vh) rotate(20deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .settings-panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .settings-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .settings-row label {
+            color: #333;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .settings-row input[type="datetime-local"] {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .settings-row input[type="datetime-local"]:focus {
+            border-color: #764ba2;
+        }
+
+        .settings-row button {
+            padding: 12px 25px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .settings-row button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .settings-row button.reset-btn {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .current-date-display {
+            margin-top: 15px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .main-countdown {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-countdown h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .countdown-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .countdown-number {
+            font-size: 4rem;
+            font-weight: bold;
+            display: block;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .countdown-label {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+
+        .breakdown-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .breakdown-section h2 {
+            color: #667eea;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .breakdown-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .breakdown-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .breakdown-card:nth-child(2) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        }
+
+        .breakdown-card:nth-child(3) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.4);
+        }
+
+        .breakdown-number {
+            font-size: 3.5rem;
+            font-weight: bold;
+            display: block;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .breakdown-label {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        .retirement-date {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .emoji-rain {
+            position: fixed;
+            font-size: 2rem;
+            animation: emoji-fall 3s linear infinite;
+            z-index: 5;
+        }
+
+        @keyframes emoji-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .countdown-number { font-size: 3rem; }
+            .breakdown-number { font-size: 2.5rem; }
+            .settings-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>🎉 Randy's Retirement Countdown! 🎉</h1>
+            <p class="subtitle">Every second brings you closer to freedom!</p>
+        </header>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <h3>⚙️ Set Your Retirement Date</h3>
+            <div class="settings-row">
+                <label for="retirement-input">Pick a date:</label>
+                <input type="datetime-local" id="retirement-input">
+                <button onclick="saveDate()">💾 Save Date</button>
+                <button class="reset-btn" onclick="resetToDefault()">🔄 Reset</button>
+            </div>
+            <p class="current-date-display" id="current-date-display">Current retirement date: Loading...</p>
+        </div>
+
+        <div class="main-countdown">
+            <h2>⏰ Time Until Retirement</h2>
+            <div class="countdown-grid">
+                <div class="countdown-item">
+                    <span class="countdown-number" id="months">0</span>
+                    <span class="countdown-label">Months</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="days">0</span>
+                    <span class="countdown-label">Days</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="hours">0</span>
+                    <span class="countdown-label">Hours</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="minutes">0</span>
+                    <span class="countdown-label">Minutes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="breakdown-section">
+            <h2>📊 Alternative Views</h2>
+            <div class="breakdown-grid">
+                <div class="breakdown-card">
+                    <span class="breakdown-number" id="total-months">0</span>
+                    <span class="breakdown-label">Total Months</span>
+                </div>
+                <div class="breakdown-card">
+                    <span class="breakdown-number" id="total-days">0</span>
+                    <span class="breakdown-label">Total Days</span>
+                </div>
+                <div class="breakdown-card">
+                    <span class="breakdown-number" id="total-hours">0</span>
+                    <span class="breakdown-label">Total Hours</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="retirement-date">
+            🗓️ Retirement Date: <strong id="retirement-date-display">Loading...</strong>
+        </div>
+    </div>
+
+    <script>
+        // Default retirement date (February 1st, 2027)
+        const DEFAULT_RETIREMENT_DATE = new Date('2027-02-01T00:00:00');
+        const STORAGE_KEY = 'randy-retirement-date';
+
+        // Get saved date or use default
+        function getRetirementDate() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return new Date(saved);
+            }
+            return DEFAULT_RETIREMENT_DATE;
+        }
+
+        // Save date to localStorage
+        function saveDate() {
+            const input = document.getElementById('retirement-input');
+            if (input.value) {
+                const newDate = new Date(input.value);
+                localStorage.setItem(STORAGE_KEY, newDate.toISOString());
+                updateCurrentDateDisplay();
+                updateCountdown();
+                alert('✅ Retirement date saved! This will be remembered on this device.');
+            } else {
+                alert('⚠️ Please select a date first!');
+            }
+        }
+
+        // Reset to default
+        function resetToDefault() {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('retirement-input').value = '';
+            updateCurrentDateDisplay();
+            updateCountdown();
+            alert('🔄 Reset to default date (February 1, 2027)');
+        }
+
+        // Update the current date display
+        function updateCurrentDateDisplay() {
+            const retirementDate = getRetirementDate();
+            document.getElementById('current-date-display').textContent = 
+                'Current retirement date: ' + retirementDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            document.getElementById('retirement-date-display').textContent = 
+                retirementDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+        }
+
+        function updateCountdown() {
+            const retirementDate = getRetirementDate();
+            const now = new Date();
+            const diff = retirementDate - now;
+
+            if (diff <= 0) {
+                // Retirement day has arrived!
+                document.getElementById('months').textContent = '0';
+                document.getElementById('days').textContent = '0';
+                document.getElementById('hours').textContent = '0';
+                document.getElementById('minutes').textContent = '0';
+                document.getElementById('total-months').textContent = '0';
+                document.getElementById('total-days').textContent = '0';
+                document.getElementById('total-hours').textContent = '0';
+                document.querySelector('.subtitle').textContent = "🎊 Randy is retired! Time to celebrate! 🎊";
+                return;
+            }
+
+            // Calculate time components
+            const milliseconds = diff;
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            const months = Math.floor(days / 30.44); // Average days per month
+
+            // Main countdown (remaining after subtracting larger units)
+            const remainingDaysAfterMonths = days - (months * 30.44);
+            const remainingHoursAfterDays = hours - (days * 24);
+            const remainingMinutesAfterHours = minutes - (hours * 60);
+
+            // Update main countdown
+            document.getElementById('months').textContent = months;
+            document.getElementById('days').textContent = Math.floor(remainingDaysAfterMonths);
+            document.getElementById('hours').textContent = Math.floor(remainingHoursAfterDays);
+            document.getElementById('minutes').textContent = Math.floor(remainingMinutesAfterHours);
+
+            // Update breakdown section
+            document.getElementById('total-months').textContent = months.toLocaleString();
+            document.getElementById('total-days').textContent = days.toLocaleString();
+            document.getElementById('total-hours').textContent = hours.toLocaleString();
+        }
+
+        // Confetti Animation
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const confettiPieces = [];
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ff69b4'];
+
+        class Confetti {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 10 + 5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.speed = Math.random() * 3 + 2;
+                this.angle = Math.random() * 360;
+                this.spin = Math.random() * 10 - 5;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.angle += this.spin;
+                if (this.y > canvas.height) {
+                    this.y = -20;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.angle * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        // Create confetti
+        for (let i = 0; i < 150; i++) {
+            confettiPieces.push(new Confetti());
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confettiPieces.forEach(confetti => {
+                confetti.update();
+                confetti.draw();
+            });
+            requestAnimationFrame(animateConfetti);
+        }
+
+        // Create floating balloons
+        function createBalloon() {
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            balloon.style.left = Math.random() * 100 + 'vw';
+            balloon.style.background = `linear-gradient(135deg, ${colors[Math.floor(Math.random() * colors.length)]}, #ffffff)`;
+            balloon.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            document.body.appendChild(balloon);
+
+            setTimeout(() => {
+                balloon.remove();
+            }, 20000);
+        }
+
+        // Create emoji rain
+        function createEmojiRain() {
+            const emojis = ['🎉', '🎊', '🎈', '🎁', '⭐', '🌟', '✨', '🥳'];
+            const emoji = document.createElement('div');
+            emoji.className = 'emoji-rain';
+            emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            emoji.style.left = Math.random() * 100 + 'vw';
+            emoji.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.body.appendChild(emoji);
+
+            setTimeout(() => {
+                emoji.remove();
+            }, 5000);
+        }
+
+        // Initialize
+        animateConfetti();
+        updateCurrentDateDisplay();
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Create balloons periodically
+        setInterval(createBalloon, 2000);
+
+        // Create emoji rain periodically
+        setInterval(createEmojiRain, 500);
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
