@@ -391,6 +391,15 @@
             return DEFAULT_RETIREMENT_DATE;
         }
 
+        // Auto-set time to 5:00 PM when date is selected
+        document.getElementById('retirement-input').addEventListener('change', function(e) {
+            if (e.target.value) {
+                // Extract just the date part and set time to 17:00 (5 PM)
+                const datePart = e.target.value.split('T')[0];
+                e.target.value = datePart + 'T17:00';
+            }
+        });
+
         // Save date to localStorage
         function saveDate() {
             const input = document.getElementById('retirement-input');
